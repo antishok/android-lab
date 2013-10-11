@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.shoky.myapp"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:minSdkVersion="11"
+        android:targetSdkVersion="18" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:glEsVersion="0x00020000" android:required="true" />
+    
+	<uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name="com.shoky.myapp.MainActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTop" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.shoky.myapp.DisplayMessageActivity"
+            android:label="@string/title_activity_display_message"
+            android:launchMode="singleTop"
+            android:parentActivityName="com.shoky.myapp.MainActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.shoky.myapp.MainActivity" />
+        </activity>
+        <activity
+            android:name="com.shoky.myapp.ArticleActivity"
+            android:label="Article"
+            android:parentActivityName="com.shoky.myapp.DisplayMessageActivity" />
+        <activity
+            android:name="com.shoky.myapp.CamLabActivity"
+            android:label="@string/title_activity_cam_lab"
+            android:parentActivityName="com.shoky.myapp.MainActivity">
+            
+            <!-- android:theme="@android:style/Theme.NoTitleBar.Fullscreen" -->
+            
+        </activity>
+		
+        <activity
+            android:name="com.shoky.myapp.OpenGLActivity"
+            android:label="OpenGL"
+            android:parentActivityName="com.shoky.myapp.MainActivity" >
+        </activity>
+        </application>
+
+</manifest>
