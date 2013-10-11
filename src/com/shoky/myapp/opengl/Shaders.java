@@ -8,7 +8,7 @@ public class Shaders {
     public final static String gouraudVertexShaderCode =
         "uniform mat4 uMVPMatrix;" +
         "uniform mat4 uMVMatrix;" +
-        "uniform mat4 uNormalMatrix;" + // transpose of inverse of mvp matrix ( should be of mv? )
+        "uniform mat4 uNormalMatrix;" + // transpose of inverse of mv matrix (needed if mv matrix contains non-uniform scales)
         "uniform vec4 uEcLightPos;" +
 
         "attribute vec4 aPosition;" +
@@ -19,7 +19,7 @@ public class Shaders {
         "void main() {" +
         "  vec4 globalAmbient, ambient, diffuse, specular = vec4(0);" +
         "  vec3 ecPosition = vec3(uMVMatrix * aPosition);" +
-        "  vec3 ecNormal = normalize(vec3(uMVMatrix * vec4(aNormal, 0.0)));" + // normal-matrix * vertex-normal
+        "  vec3 ecNormal = normalize(vec3(uNormalMatrix * vec4(aNormal, 0.0)));" + // (can multiply by either mvMatrix or normalMatrix. normalMatrix is better when mvMatrix contains non-uniform scales)
         
         "  vec3 lightDir = normalize(vec3(uEcLightPos) - ecPosition);" + // L = vertex-to-lightpos vector, in eye-coordinates 
         "  float NdotL = max(dot(ecNormal, lightDir), 0.0);" +
@@ -54,7 +54,7 @@ public class Shaders {
     public final static String phongVertexShaderCode =
             "uniform mat4 uMVPMatrix;" +
             "uniform mat4 uMVMatrix;" +
-            "uniform mat4 uNormalMatrix;" + // transpose of inverse of mvp matrix
+            "uniform mat4 uNormalMatrix;" + // transpose of inverse of mv matrix
             "uniform vec4 uEcLightPos;" +
             "attribute vec4 aPosition;" +
             "attribute vec3 aNormal;" +
@@ -64,12 +64,11 @@ public class Shaders {
             "varying vec3 vLightDir;" +
             "void main() {" +
             "  " + 
-            "  vec3 ecPosition = vec3(uMVMatrix * aPosition);" +
-            "  vLightDir = normalize(vec3(uEcLightPos) - ecPosition);" +
-            //"  vec3 lightDir = normalize(vec3(uMVMatrix * vec4(uLightDir, 0.0))); " +
-            "  vNormal = normalize(vec3(uMVMatrix * vec4(aNormal, 0.0)));" + // normal-matrix * vertex-normal
-            "  vec3 eyeDir = -ecPosition;" +
-            "  vHalfVector = normalize(eyeDir + vLightDir);" +
+            "  vec3 ecPosition = vec3(uMVMatrix * aPosition);" + // convert vertex position to eye-coordinates
+            "  vLightDir = normalize(vec3(uEcLightPos) - ecPosition);" + // vector from vertex to lightPos
+            "  vNormal = normalize(vec3(uNormalMatrix * vec4(aNormal, 0.0)));" +  // (can multiply by either mvMatrix or normalMatrix. normalMatrix is better when mvMatrix contains non-uniform scales)
+            "  vec3 eyeDir = -ecPosition;" + // vector from vertex to eye (in eye coordinates, so it's just negative of vertexPos)
+            "  vHalfVector = normalize(eyeDir + vLightDir);" + // half-vector between eye-vector and light-vector, pass on to fragment shader
             
             "  vec4 globalAmbient = aColor * vec4(0.2, 0.2, 0.2, 1.0);" + // material-ambient * global-ambient
             "  vAmbient = globalAmbient + aColor * vec4(0.2, 0.1, 0.1, 1.0);" + // global + material-ambient * light-ambient

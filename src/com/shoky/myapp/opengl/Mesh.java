@@ -38,7 +38,7 @@ public class Mesh {
     	mvMatrix.setMultiply(viewMatrix, modelMatrix);
     	mvpMatrix.setMultiply(projMatrix, mvMatrix);
     	
-    	Mx normalMatrix = mvpMatrix.inverse().transpose();
+    	Mx normalMatrix = mvMatrix.inverse().transpose();
     	
         GLES20.glUseProgram(program);
 
