@@ -31,7 +31,7 @@ public class Mesh {
     	mNumVertices = drawOrder.length;
     }
     
-    public void draw(Mx modelMatrix, Mx viewMatrix, Mx projMatrix, float[] lightPos, int program) {
+    public void draw(Mx modelMatrix, Mx viewMatrix, Mx projMatrix, Light light, int program) {
     	Mx mvMatrix = new Mx();
     	Mx mvpMatrix = new Mx();
     	
@@ -62,10 +62,10 @@ public class Mesh {
         GLES20.glVertexAttribPointer(colorHandle, 4, GLES20.GL_FLOAT, false, colorStride, colorBuffer);
         
         float ecLightPos[] = new float[4];
-        Matrix.multiplyMV(ecLightPos, 0, mvMatrix.mMatrix, 0, lightPos, 0);
+        Matrix.multiplyMV(ecLightPos, 0, viewMatrix.mMatrix, 0, light.coords, 0);
         
-        GLES20.glUniform3f(vertShaderLightPosHandle, ecLightPos[0], ecLightPos[1], ecLightPos[2]); // using separate uniforms (with identical values) for each shader,
-        GLES20.glUniform3f(fragShaderLightPosHandle, ecLightPos[0], ecLightPos[1], ecLightPos[2]); // because nexus4 doesn't allow sharing one uniform between the 2 shaders (?)
+        GLES20.glUniform4fv(vertShaderLightPosHandle, 1, ecLightPos, 0); // using separate uniforms (with identical values) for each shader,
+        GLES20.glUniform4fv(fragShaderLightPosHandle, 1, ecLightPos, 0); // because nexus4 doesn't allow sharing one uniform between the 2 shaders (?)
 
 
         

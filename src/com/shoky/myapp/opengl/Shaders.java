@@ -9,7 +9,7 @@ public class Shaders {
         "uniform mat4 uMVPMatrix;" +
         "uniform mat4 uMVMatrix;" +
         "uniform mat4 uNormalMatrix;" + // transpose of inverse of mvp matrix ( should be of mv? )
-        "uniform vec3 uEcLightPos;" +
+        "uniform vec4 uEcLightPos;" +
 
         "attribute vec4 aPosition;" +
         "attribute vec3 aNormal;" +
@@ -19,25 +19,25 @@ public class Shaders {
         "void main() {" +
         "  vec4 globalAmbient, ambient, diffuse, specular = vec4(0);" +
         "  vec3 ecPosition = vec3(uMVMatrix * aPosition);" +
-        "  vec3 ecNormal = normalize(vec3(uMVPMatrix * vec4(aNormal, 0.0)));" + // normal-matrix * vertex-normal
+        "  vec3 ecNormal = normalize(vec3(uMVMatrix * vec4(aNormal, 0.0)));" + // normal-matrix * vertex-normal
         
-        "  vec3 lightDir = normalize(uEcLightPos - ecPosition);" +
+        "  vec3 lightDir = normalize(vec3(uEcLightPos) - ecPosition);" + // L = vertex-to-lightpos vector, in eye-coordinates 
         "  float NdotL = max(dot(ecNormal, lightDir), 0.0);" +
         
         "  if (NdotL > 0.0) { " +
-        "	 vec3 eyeDir = vec3(0.0,0.0,-1.0);" + // eyeDir = lightDir;" +
+        "	 vec3 eyeDir = -ecPosition;" + // vertex-to-eye vector, in eye-coordinates
         "    vec3 lightHalfVector = normalize(eyeDir + lightDir);" +
     	"    float NdotHV = max(dot(ecNormal, lightHalfVector), 0.0);" +
-    	"    specular = vec4(0.6,0.3,0.5,1.0) * vec4(0.6,0.7,0.8,1.0) * pow(NdotHV, 6.0);" + // gl_FrontMaterial.specular * gl_LightSource[0].specular * pow(NdotHV,gl_FrontMaterial.shininess);" +
+    	"    specular = vec4(0.2,0.3,0.5,1.0) * vec4(0.8,0.8,0.8,1.0) * pow(NdotHV, 16.0);" + // gl_FrontMaterial.specular * gl_LightSource[0].specular * pow(NdotHV,gl_FrontMaterial.shininess);" +
     	"  }" +
     		
         "  globalAmbient = aColor * vec4(0.2, 0.2, 0.2, 1.0);" + // material-ambient * global-ambient
         "  ambient = aColor * vec4(0.2, 0.1, 0.1, 1.0);" + // material-ambient * light-ambient
-		"  diffuse =  aColor * vec4(0.8, 0.7, 0.8, 1.0);" + // material-diffuse * light-diffuse
+		"  diffuse = aColor * vec4(0.8, 0.7, 0.8, 1.0);" + // material-diffuse * light-diffuse
 		
 		"  vColor = globalAmbient + ambient + NdotL * diffuse + specular;" +
 
-        "  gl_Position = uMVPMatrix * aPosition;" + // the matrix must be included as a modifier of gl_Position
+        "  gl_Position = uMVPMatrix * aPosition;" +
         "}";
     
     public final static String gouraudFragmentShaderCode =
@@ -55,7 +55,7 @@ public class Shaders {
             "uniform mat4 uMVPMatrix;" +
             "uniform mat4 uMVMatrix;" +
             "uniform mat4 uNormalMatrix;" + // transpose of inverse of mvp matrix
-            "uniform vec3 uEcLightPos;" +
+            "uniform vec4 uEcLightPos;" +
             "attribute vec4 aPosition;" +
             "attribute vec3 aNormal;" +
             "attribute vec4 aColor;" +
@@ -65,10 +65,10 @@ public class Shaders {
             "void main() {" +
             "  " + 
             "  vec3 ecPosition = vec3(uMVMatrix * aPosition);" +
-            "  vLightDir = normalize(uEcLightPos - ecPosition);" +
+            "  vLightDir = normalize(vec3(uEcLightPos) - ecPosition);" +
             //"  vec3 lightDir = normalize(vec3(uMVMatrix * vec4(uLightDir, 0.0))); " +
-            "  vNormal = normalize(vec3(uMVPMatrix * vec4(aNormal, 0.0)));" + // normal-matrix * vertex-normal
-            "  vec3 eyeDir = vec3(0.0,0.0,-1.0);" +
+            "  vNormal = normalize(vec3(uMVMatrix * vec4(aNormal, 0.0)));" + // normal-matrix * vertex-normal
+            "  vec3 eyeDir = -ecPosition;" +
             "  vHalfVector = normalize(eyeDir + vLightDir);" +
             
             "  vec4 globalAmbient = aColor * vec4(0.2, 0.2, 0.2, 1.0);" + // material-ambient * global-ambient
@@ -95,7 +95,7 @@ public class Shaders {
             "    color += vDiffuse * NdotL;" +
             "    vec3 halfV = normalize(vHalfVector);" +
             "    NdotHV = max(dot(n,halfV), 0.0);" +
-            "    color += vec4(0.6,0.3,0.5,1.0) * vec4(0.6,0.7,0.8,1.0) * pow(NdotHV, 6.0);" + //gl_FrontMaterial.specular * gl_LightSource[0].specular * pow(NdotHV, gl_FrontMaterial.shininess);" +
+            "    color += vec4(0.2,0.3,0.5,1.0) * vec4(0.8,0.8,0.8,1.0) * pow(NdotHV, 16.0);" + //gl_FrontMaterial.specular * gl_LightSource[0].specular * pow(NdotHV, gl_FrontMaterial.shininess);" +
             "  }" +
             
             "  gl_FragColor = color;" +

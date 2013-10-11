@@ -8,6 +8,7 @@ import android.opengl.GLSurfaceView;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.shoky.myapp.opengl.Light;
 import com.shoky.myapp.opengl.Mesh;
 import com.shoky.myapp.opengl.Mx;
 import com.shoky.myapp.opengl.Shaders;
@@ -20,7 +21,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private Mesh mSphere;
     private int mProgram;
 
-    private float[] mLightPos = new float[] {0.0f, 0.0f, -1.0f, 1.0f}; // simple directional light    
+    private Light mLight;
 
     private Mx mViewMatrix = new Mx();
     private Mx mProjMatrix = new Mx();
@@ -30,6 +31,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     public volatile float mTouchInput;
     
     public MyGLRenderer() {
+    	mLight = new Light(Light.Type.POSITIONAL, new float[] { 0.0f, 0.0f, 2.0f });
         mTriangle = Mesh.newTriangle();
         mSphere = Mesh.newSphere(1f,60,60);
         mCube = Mesh.newCube();
@@ -56,20 +58,21 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         long time = SystemClock.uptimeMillis() % 4000L;
       	float angle = 0.090f * ((int) time);
       	
+      	mLight.coords[0] = 4*(float)Math.sin(angle * 2 * (float)Math.PI / 360);
+      	mLight.coords[1] = 4*(float)Math.sin(-angle * 4 * (float)Math.PI / 360);
+      	
       	mModelMatrix
       		.setTranslate(-1.7f, -2.8f, -6)
       		.rotate(angle, 0.4f, 0, 0.7f);
-      	mCube.draw(mModelMatrix, mViewMatrix, mProjMatrix, mLightPos, mProgram);
+      	mCube.draw(mModelMatrix, mViewMatrix, mProjMatrix, mLight, mProgram);
     
-      	mModelMatrix.setTranslate(0,  0, -0.85f);
-      	mLightPos[0] = (float)Math.sin(angle * 2 * (float)Math.PI / 360);
-      	mLightPos[1] = (float)Math.sin(-angle * 4 * (float)Math.PI / 360);
-        mSphere.draw(mModelMatrix, mViewMatrix, mProjMatrix,mLightPos, mProgram);
+      	mModelMatrix.setTranslate(0,  0, -1.0f);
+        mSphere.draw(mModelMatrix, mViewMatrix, mProjMatrix,mLight, mProgram);
 
         mModelMatrix
-        	.setTranslate(0, 0.8f-mTouchInput*0.02f, 0)
+        	.setTranslate(0, 0.8f-mTouchInput*0.02f, -0.5f)
         	.rotate(20 + mTouchInput, 0, 0, 1.0f);
-        mTriangle.draw(mModelMatrix, mViewMatrix, mProjMatrix, mLightPos, mProgram);
+        mTriangle.draw(mModelMatrix, mViewMatrix, mProjMatrix, mLight, mProgram);
     }
 
     @Override
@@ -98,3 +101,4 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         }
     }
 }
+

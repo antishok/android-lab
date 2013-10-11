@@ -103,14 +103,3 @@ public class OpenGLActivity extends Activity implements TouchDeltaListener {
 		mRenderer.mTouchInput += (dx + dy) * 180.0f / 320; //TOUCH_SCALE_FACTOR;        			
 	}
 }
-
-class Light {
-	public enum LightType { DIRECTIONAL, POSITIONAL, SPOTLIGHT };
-	
-	public LightType mType;
-	
-	public Light(LightType type, float[] coords) {
-		// coords is direction if directional, position if positional
-		mType = type;
-	}
-}
