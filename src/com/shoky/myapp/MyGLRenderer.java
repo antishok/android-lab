@@ -27,12 +27,15 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private Mx mViewMatrix = new Mx();
     private Mx mProjMatrix = new Mx();
     private Mx mModelMatrix = new Mx();
+    
+    public static Mx tmpMx = new Mx();
 
     // Declare as volatile because we are updating it from another thread
-    public volatile float mTouchInput;
+    public volatile float mTouchInputX;
+    public volatile float mTouchInputY;
     
     public MyGLRenderer() {
-    	mLight = new Light(Light.Type.POSITIONAL, new float[] { 0.0f, 0.0f, -0.3f });
+    	mLight = new Light(Light.Type.POSITIONAL, new float[] { 0.0f, 0.0f, 0.0f });
         mTriangle = Mesh.newTriangle();
         mSphere = Mesh.newSphere(1f,60,60);
         mCube = Mesh.newCube();
@@ -55,25 +58,31 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     @Override
     public void onDrawFrame(GL10 unused) 
     {
+    	mViewMatrix
+    		.setTranslate(0, 0, -4.5f)
+    		.rotate(mTouchInputX,0,1,0)
+    		.rotate(mTouchInputY,1,0,0)
+    		.translate(0, 0, 1.5f); // tmp
+    	
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-        long time = SystemClock.uptimeMillis() % 16000L;
-      	float angle = 0.0225f * ((int) time);
+        long time = SystemClock.uptimeMillis() % 8000L;
+      	float angle = (360.0f / 8000) * ((int) time);
       	
       	mLight.coords[0] = 0.5f*(float)Math.sin(angle * 2 * (float)Math.PI / 360);
-      	mLight.coords[1] = (float)Math.sin(-angle * 4 * (float)Math.PI / 360);
+      	mLight.coords[1] = 0.5f*(float)Math.sin(-angle * 4 * (float)Math.PI / 360);
       	
       	mModelMatrix
-      		.setTranslate(0, 0, -1f)
-      		.rotate(20, 0.4f, 0, 0.7f);
+      		.setTranslate(-0.2f, 0, -1.5f)
+      		.rotate(angle, 0.4f, 0, 0.7f);
       	mCube.draw(mModelMatrix, mViewMatrix, mProjMatrix, mLight, mProgram);
     
-      	mModelMatrix.setTranslate(1.3f,  0, -1.0f).scaleUniform(0.5f);
+      	mModelMatrix.setTranslate(1.0f,  0, -1.0f).scaleUniform(0.5f);
         mSphere.draw(mModelMatrix, mViewMatrix, mProjMatrix,mLight, mProgram);
 
         mModelMatrix
-        	.setTranslate(0, 0.8f-mTouchInput*0.02f, -0.5f)
-        	.rotate(20 + mTouchInput, 0, 0, 1.0f);
+        	.setTranslate(0, 0.8f-mTouchInputY*0.02f, -1.0f)
+        	.rotate(20 + mTouchInputY, 0, 0, 1.0f);
         mTriangle.draw(mModelMatrix, mViewMatrix, mProjMatrix, mLight, mProgram);
         
         drawPointLight();
@@ -85,8 +94,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     	GLES20.glUseProgram(mPointProgram);
     	
     	Mx mvpMatrix = new Mx();
-    	mvpMatrix.setMultiply(mViewMatrix, mModelMatrix);
-    	mvpMatrix.setMultiply(mProjMatrix, mvpMatrix);    	
+    	Mx.scratch.setMultiply(mViewMatrix, mModelMatrix);
+    	mvpMatrix.setMultiply(mProjMatrix, Mx.scratch);    	
     	
         int mvpMatrixHandle = GLES20.glGetUniformLocation(mPointProgram, "uMVPMatrix");
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix.mMatrix, 0);

@@ -39,16 +39,6 @@ class MyGLSurfaceView extends GLSurfaceView {
 		            float dx = x - mPreviousX;
 		            float dy = y - mPreviousY;
 	
-		            // reverse direction of rotation above the mid-line
-		            if (y > getHeight() / 2) {
-		              dx = dx * -1 ;
-		            }
-	
-		            // reverse direction of rotation to left of the mid-line
-		            if (x < getWidth() / 2) {
-		              dy = dy * -1 ;
-		            }
-		            
 		            touchDeltaListener.onTouchDelta(dx, dy);
 		            //requestRender();
 		    }
@@ -100,6 +90,7 @@ public class OpenGLActivity extends Activity implements TouchDeltaListener {
 
 	@Override
 	public void onTouchDelta(float dx, float dy) {
-		mRenderer.mTouchInput += (dx + dy) * 180.0f / 320; //TOUCH_SCALE_FACTOR;        			
+		mRenderer.mTouchInputX += dx * 180.0f / 360; //TOUCH_SCALE_FACTOR;
+		mRenderer.mTouchInputY += dy * 180.0f / 360; //TOUCH_SCALE_FACTOR;
 	}
 }
