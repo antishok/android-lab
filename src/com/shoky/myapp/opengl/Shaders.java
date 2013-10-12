@@ -99,20 +99,47 @@ public class Shaders {
             
             "  gl_FragColor = color;" +
             "}";
+    
+    public final static String pointVertexShader =
+        	"uniform mat4 uMVPMatrix;"		
+          + "void main()"
+          + "{                              "
+          + "   gl_Position = uMVPMatrix * vec4(0.0, 0.0, 0.0, 1.0);"
+          + "   gl_PointSize = 5.0;         "
+          + "}                              ";
+        
+    public final static String pointFragmentShader = 
+        	"precision mediump float;       "					          
+          + "void main()                    "
+          + "{                              "
+          + "   gl_FragColor = vec4(1.0,    " 
+          + "   1.0, 1.0, 1.0);             "
+          + "}                              ";
+
 
 	
-    public static int makeProgram() {    	
-	    // prepare shaders and OpenGL program
+    public static int makeProgram(int vertShaderHandle, int fragShaderHandle) {    		    
+	    int program = GLES20.glCreateProgram();
+	    GLES20.glAttachShader(program, vertShaderHandle);
+	    GLES20.glAttachShader(program, fragShaderHandle);
+	    GLES20.glLinkProgram(program);
+	    return program;
+    }
+    
+    public static int makeLightingProgram() {
 	    int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER,
 	            "phong".equals(CURRENT_SHADER) ? Shaders.phongVertexShaderCode : Shaders.gouraudVertexShaderCode);
 	    int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER,
 	    		"phong".equals(CURRENT_SHADER) ? Shaders.phongFragmentShaderCode : Shaders.gouraudFragmentShaderCode);
-	
-	    int program = GLES20.glCreateProgram();             // create empty OpenGL Program
-	    GLES20.glAttachShader(program, vertexShader);   // add the vertex shader to program
-	    GLES20.glAttachShader(program, fragmentShader); // add the fragment shader to program
-	    GLES20.glLinkProgram(program);                  // create OpenGL program executables
-	    return program;
+	    
+    	return makeProgram(vertexShader, fragmentShader);
+    }
+    
+    public static int makePointProgram() {    	
+	    // prepare shaders and OpenGL program
+	    int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, Shaders.pointVertexShader);
+	    int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, Shaders.pointFragmentShader);
+	    return makeProgram(vertexShader, fragmentShader);
     }
 
     public static int loadShader(int type, String shaderCode){

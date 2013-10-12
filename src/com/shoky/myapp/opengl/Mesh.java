@@ -12,10 +12,10 @@ import android.opengl.Matrix;
 import android.util.Log;
 
 public class Mesh {
-    protected FloatBuffer vertexBuffer; // vec3
-    protected FloatBuffer normalsBuffer; // vec3
-    protected FloatBuffer colorBuffer; // vec4
-    protected ShortBuffer drawListBuffer;
+    protected FloatBuffer mVertexBuffer; // vec3
+    protected FloatBuffer mNormalsBuffer; // vec3
+    protected FloatBuffer mColorBuffer; // vec4
+    protected ShortBuffer mDrawListBuffer;
     
     protected static final int COORDS_PER_VERTEX = 3;
     protected static final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
@@ -24,10 +24,10 @@ public class Mesh {
     protected final int mNumVertices;
 
     public Mesh(final float[] vertexCoords, final float[] normalCoords, final float[] colors, final short[] drawOrder) {
-    	vertexBuffer = allocFloatBuffer(vertexCoords);
-    	normalsBuffer = allocFloatBuffer(normalCoords);
-    	colorBuffer = allocFloatBuffer(colors);
-    	drawListBuffer = allocShortBuffer(drawOrder);    	
+    	mVertexBuffer = allocFloatBuffer(vertexCoords);
+    	mNormalsBuffer = allocFloatBuffer(normalCoords);
+    	mColorBuffer = allocFloatBuffer(colors);
+    	mDrawListBuffer = allocShortBuffer(drawOrder);    	
     	mNumVertices = drawOrder.length;
     }
     
@@ -38,7 +38,7 @@ public class Mesh {
     	mvMatrix.setMultiply(viewMatrix, modelMatrix);
     	mvpMatrix.setMultiply(projMatrix, mvMatrix);
     	
-    	Mx normalMatrix = mvMatrix.inverse().transpose();
+    	Mx normalMatrix = new Mx(mvMatrix).invert().transpose();
     	
         GLES20.glUseProgram(program);
 
@@ -53,13 +53,13 @@ public class Mesh {
         MyGLRenderer.checkGlError("glGetUniformLocation");
         
         GLES20.glEnableVertexAttribArray(positionHandle);
-        GLES20.glVertexAttribPointer(positionHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, vertexBuffer);
+        GLES20.glVertexAttribPointer(positionHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, mVertexBuffer);
         
         GLES20.glEnableVertexAttribArray(normalHandle);
-        GLES20.glVertexAttribPointer(normalHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, normalsBuffer);
+        GLES20.glVertexAttribPointer(normalHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, mNormalsBuffer);
 
         GLES20.glEnableVertexAttribArray(colorHandle);
-        GLES20.glVertexAttribPointer(colorHandle, 4, GLES20.GL_FLOAT, false, colorStride, colorBuffer);
+        GLES20.glVertexAttribPointer(colorHandle, 4, GLES20.GL_FLOAT, false, colorStride, mColorBuffer);
         
         float ecLightPos[] = new float[4];
         Matrix.multiplyMV(ecLightPos, 0, viewMatrix.mMatrix, 0, light.coords, 0);
@@ -76,7 +76,7 @@ public class Mesh {
         MyGLRenderer.checkGlError("glUniformMatrix4fv");
 
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, mNumVertices,
-                              GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
+                              GLES20.GL_UNSIGNED_SHORT, mDrawListBuffer);
 
         GLES20.glDisableVertexAttribArray(colorHandle);
         GLES20.glDisableVertexAttribArray(normalHandle);

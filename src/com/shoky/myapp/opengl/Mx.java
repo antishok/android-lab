@@ -38,16 +38,21 @@ public class Mx {
 	}
 	
 	public Mx transpose() {
+		Matrix.transposeM(mMatrix, 0, mMatrix, 0);
+		return this;
+		/*
 		return new Mx(new float[] {
 			mMatrix[0], mMatrix[4], mMatrix[8], mMatrix[12],
 			mMatrix[1], mMatrix[5], mMatrix[9], mMatrix[13], 
 			mMatrix[2], mMatrix[6], mMatrix[10], mMatrix[14],
 			mMatrix[3], mMatrix[7], mMatrix[11], mMatrix[15]
-		});
+		});*/
 	}
 	
-	public Mx inverse() {
-		
+	public Mx invert() {
+		Matrix.invertM(mMatrix, 0, mMatrix, 0);
+		return this;
+		/*
 	    float s0 = mMatrix[0] * mMatrix[5] - mMatrix[4] * mMatrix[1];
 	    float s1 = mMatrix[0] * mMatrix[6] - mMatrix[4] * mMatrix[2];
 	    float s2 = mMatrix[0] * mMatrix[7] - mMatrix[4] * mMatrix[3];
@@ -87,7 +92,7 @@ public class Mx {
 	    b[14] = (-mMatrix[12] * s3 + mMatrix[13] * s1 - mMatrix[14] * s0) * invdet;
 	    b[15] = ( mMatrix[8] * s3 - mMatrix[9] * s1 + mMatrix[10] * s0) * invdet;
 
-	    return new Mx(b);
+	    return new Mx(b);*/
 	}
 	
 	
@@ -116,8 +121,18 @@ public class Mx {
 		return this;
 	}
 	
+	public Mx scale(float x, float y, float z) {
+		Matrix.scaleM(mMatrix, 0, x, y, z);
+		return this;
+	}
+	
+	public Mx scaleUniform(float amount) {
+		Matrix.scaleM(mMatrix, 0, amount, amount, amount);
+		return this;
+	}
+	
 	public Mx setIdentity() {
-		Matrix.setIdentityM(mMatrix, 0);
+		Matrix.setIdentityM(mMatrix, 0);		
 		return this;
 	}
 	public Mx setTranslate(float x, float y, float z) {
