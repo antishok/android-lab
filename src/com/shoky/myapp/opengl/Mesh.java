@@ -1,11 +1,8 @@
 package com.shoky.myapp.opengl;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-import com.shoky.myapp.MyGLRenderer;
 
 import android.opengl.GLES20;
 import android.opengl.Matrix;
@@ -24,10 +21,10 @@ public class Mesh {
     protected final int mNumVertices;
 
     public Mesh(final float[] vertexCoords, final float[] normalCoords, final float[] colors, final short[] drawOrder) {
-    	mVertexBuffer = allocFloatBuffer(vertexCoords);
-    	mNormalsBuffer = allocFloatBuffer(normalCoords);
-    	mColorBuffer = allocFloatBuffer(colors);
-    	mDrawListBuffer = allocShortBuffer(drawOrder);    	
+    	mVertexBuffer = Utils.allocFloatBuffer(vertexCoords);
+    	mNormalsBuffer = Utils.allocFloatBuffer(normalCoords);
+    	mColorBuffer = Utils.allocFloatBuffer(colors);
+    	mDrawListBuffer = Utils.allocShortBuffer(drawOrder);    	
     	mNumVertices = drawOrder.length;
     }
     
@@ -45,12 +42,11 @@ public class Mesh {
         int positionHandle = GLES20.glGetAttribLocation(program, "aPosition");
         int normalHandle = GLES20.glGetAttribLocation(program, "aNormal");
         int colorHandle = GLES20.glGetAttribLocation(program, "aColor");
-        MyGLRenderer.checkGlError("glGetAttribLocation");
-        int vertShaderLightPosHandle = GLES20.glGetUniformLocation(program, "uEcLightPos");
-        int fragShaderLightPosHandle = GLES20.glGetUniformLocation(program, "uFragShaderEcLightPos");
+        Utils.checkGlError("glGetAttribLocation");
+        int lightPosHandle = GLES20.glGetUniformLocation(program, "uEcLightPos");
         int mvpMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");       
         int normalMxHandle = GLES20.glGetUniformLocation(program, "uNormalMatrix");
-        MyGLRenderer.checkGlError("glGetUniformLocation");
+        Utils.checkGlError("glGetUniformLocation");
         
         GLES20.glEnableVertexAttribArray(positionHandle);
         GLES20.glVertexAttribPointer(positionHandle, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, mVertexBuffer);
@@ -64,16 +60,13 @@ public class Mesh {
         float ecLightPos[] = new float[4];
         Matrix.multiplyMV(ecLightPos, 0, viewMatrix.mMatrix, 0, light.coords, 0);
         
-        GLES20.glUniform4fv(vertShaderLightPosHandle, 1, ecLightPos, 0); // using separate uniforms (with identical values) for each shader,
-        GLES20.glUniform4fv(fragShaderLightPosHandle, 1, ecLightPos, 0); // because nexus4 doesn't allow sharing one uniform between the 2 shaders (?)
-
-
+        GLES20.glUniform4fv(lightPosHandle, 1, ecLightPos, 0);
         
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix.mMatrix, 0);        
         GLES20.glUniformMatrix4fv(normalMxHandle, 1, false, normalMatrix.mMatrix, 0);
         GLES20.glUniformMatrix4fv(GLES20.glGetUniformLocation(program, "uMVMatrix"), 1, false, mvMatrix.mMatrix, 0);
 
-        MyGLRenderer.checkGlError("glUniformMatrix4fv");
+        Utils.checkGlError("glUniformMatrix4fv");
 
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, mNumVertices,
                               GLES20.GL_UNSIGNED_SHORT, mDrawListBuffer);
@@ -81,24 +74,6 @@ public class Mesh {
         GLES20.glDisableVertexAttribArray(colorHandle);
         GLES20.glDisableVertexAttribArray(normalHandle);
         GLES20.glDisableVertexAttribArray(positionHandle);
-    }
-    
-    public static FloatBuffer allocFloatBuffer(float[] coords) {
-    	// initialize vertex byte buffer for shape coordinates
-        return (FloatBuffer)ByteBuffer.allocateDirect(coords.length * 4)  // (# of coordinate values * 4 bytes per float)
-        		.order(ByteOrder.nativeOrder())
-        		.asFloatBuffer()
-        		.put(coords)
-        		.position(0);
-    }
-    
-    public static ShortBuffer allocShortBuffer(short drawOrder[]) {
-        return (ShortBuffer)ByteBuffer.allocateDirect(drawOrder.length * 2) // (# of coordinate values * 2 bytes per short)
-        		.order(ByteOrder.nativeOrder())
-        		.asShortBuffer()
-        		.put(drawOrder)
-        		.position(0);
-
     }
     
     public static Mesh newCube() {

@@ -1,6 +1,7 @@
 package com.shoky.myapp.opengl;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 public class Shaders {
 	public final static String CURRENT_SHADER = "phong";
@@ -44,9 +45,9 @@ public class Shaders {
         "precision mediump float;" +
         "varying vec4 vColor;" +
         "void main() {" +
-        "  if (gl_FrontFacing) {" +
+        //"  if (gl_FrontFacing) {" +
         "    gl_FragColor = vColor;" +
-        "  }" +
+        //"  }" +
         "}";
     
     
@@ -78,12 +79,13 @@ public class Shaders {
             "}";
     
     public final static String phongFragmentShaderCode =
-    		"uniform vec3 uFragShaderEcLightPos;" +
+    		"precision mediump float;" +
+    		//"uniform highp vec4 uEcLightPos;" +
             "varying vec4 vDiffuse, vAmbient;" +
             "varying vec3 vNormal, vHalfVector;" +
             "varying vec3 vLightDir;" +
             "void main() {" +
-            "  if (!gl_FrontFacing) { return; }" +
+            //"  if (!gl_FrontFacing) { return; }" +
             "  vec3 lightDir = normalize(vLightDir);" +
             "  vec3 n = normalize(vNormal);" +
             "  vec4 color = vAmbient;" +
@@ -100,16 +102,18 @@ public class Shaders {
             "  gl_FragColor = color;" +
             "}";
     
+    
+    
     public final static String pointVertexShader =
         	"uniform mat4 uMVPMatrix;"		
+    	  + "attribute vec4 aLightPos;		"
           + "void main()"
           + "{                              "
-          + "   gl_Position = uMVPMatrix * vec4(0.0, 0.0, 0.0, 1.0);"
+          + "   gl_Position = uMVPMatrix * aLightPos;"
           + "   gl_PointSize = 5.0;         "
-          + "}                              ";
-        
+          + "}                              ";        
     public final static String pointFragmentShader = 
-        	"precision mediump float;       "					          
+        	"precision mediump float;       "
           + "void main()                    "
           + "{                              "
           + "   gl_FragColor = vec4(1.0,    " 
@@ -120,9 +124,23 @@ public class Shaders {
 	
     public static int makeProgram(int vertShaderHandle, int fragShaderHandle) {    		    
 	    int program = GLES20.glCreateProgram();
+	    if (program == 0)
+	    	return 0;
+	    
 	    GLES20.glAttachShader(program, vertShaderHandle);
+	    Utils.checkGlError("glAttachShader");
 	    GLES20.glAttachShader(program, fragShaderHandle);
+	    Utils.checkGlError("glAttachShader");
+	    
 	    GLES20.glLinkProgram(program);
+	    int[] linkStatus = new int[1];
+        GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
+        if (linkStatus[0] != GLES20.GL_TRUE) {
+            Log.e("Shaders", "Could not link program: ");
+            Log.e("Shaders", GLES20.glGetProgramInfoLog(program));
+            GLES20.glDeleteProgram(program);
+            return 0;
+        }
 	    return program;
     }
     
@@ -146,10 +164,20 @@ public class Shaders {
 
         // create a vertex shader type (GLES20.GL_VERTEX_SHADER) or a fragment shader type (GLES20.GL_FRAGMENT_SHADER)
         int shader = GLES20.glCreateShader(type);
+        if (shader == 0)
+        	return 0;
 
         // add the source code to the shader and compile it
         GLES20.glShaderSource(shader, shaderCode);
         GLES20.glCompileShader(shader);
+        int[] compiledStatus = new int[1];
+        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiledStatus, 0);
+        if (compiledStatus[0] != GLES20.GL_TRUE) {
+        	Log.e("Shaders", "Could not compile shader " + type + ":");
+            Log.e("Shaders", GLES20.glGetShaderInfoLog(shader));
+            GLES20.glDeleteShader(shader);
+            return 0;
+        }
 
         return shader;
     }

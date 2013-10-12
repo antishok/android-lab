@@ -55,6 +55,7 @@ public class OpenGLActivity extends Activity implements TouchDeltaListener {
 	
 	private MyGLSurfaceView mGLView;
 	private MyGLRenderer mRenderer;
+	private final float TOUCH_SCALE_FACTOR = 0.3f;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) 
@@ -90,7 +91,7 @@ public class OpenGLActivity extends Activity implements TouchDeltaListener {
 
 	@Override
 	public void onTouchDelta(float dx, float dy) {
-		mRenderer.mTouchInputX += dx * 180.0f / 360; //TOUCH_SCALE_FACTOR;
-		mRenderer.mTouchInputY += dy * 180.0f / 360; //TOUCH_SCALE_FACTOR;
+		mRenderer.mTouchInputX += dx * TOUCH_SCALE_FACTOR ;
+		mRenderer.mTouchInputY += dy * TOUCH_SCALE_FACTOR;
 	}
 }
