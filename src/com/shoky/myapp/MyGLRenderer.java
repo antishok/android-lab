@@ -3,15 +3,16 @@ package com.shoky.myapp;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
 import android.os.SystemClock;
 
 import com.shoky.myapp.opengl.Light;
 import com.shoky.myapp.opengl.Mesh;
 import com.shoky.myapp.opengl.Mx;
 import com.shoky.myapp.opengl.Shaders;
-import com.shoky.myapp.opengl.Utils;
 
 public class MyGLRenderer implements GLSurfaceView.Renderer {
 
@@ -33,14 +34,19 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     public volatile float mTouchInputX;
     public volatile float mTouchInputY;
     
-    public MyGLRenderer() {
-    	mPointLight = new Light(Light.Type.POSITIONAL, new float[] { 0.0f, 0.0f, -0.1f });
+	private Context mParentContext;
+    
+    public MyGLRenderer(Context context) {
+    	mPointLight = new Light(Light.Type.POSITIONAL, new float[] { 0.0f, 0.0f, -0.2f });
     	mDirectionalLight = new Light(Light.Type.DIRECTIONAL, new float[] { 0.0f, 0.0f, -1.0f });
         mTriangle = Mesh.newTriangle();
-        mSphere = Mesh.newSphere(1f,20,20);
+        mSphere = Mesh.newSphere(1f,30,30);
         mCube = Mesh.newCube();
-        
-        // Set the camera position (View matrix)
+
+    	mParentContext = context;
+    	Shaders.loadAssets( context );
+
+        // Set the initial camera position
         mViewMatrix.setLookAt(0, 0, 3.0f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
     }
         
@@ -49,7 +55,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     {
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
-        //GLES20.glEnable(GLES20.GL_CULL_FACE);
         
         mProgram = Shaders.makeLightingProgram();
         mPointProgram = Shaders.makePointProgram();
@@ -63,27 +68,32 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     		.rotate(mTouchInputX,0,1,0)
     		.rotate(mTouchInputY,1,0,0)
     		.translate(0, 0, 1.5f); // tmp
-    	
+
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+        GLES20.glEnable(GLES20.GL_CULL_FACE);
 
         long time = SystemClock.uptimeMillis() % 8000L;
       	float angle = (360.0f / 8000) * ((int) time);
       	
       	mPointLight.coords[0] = 0.5f*(float)Math.sin(angle * 2 * (float)Math.PI / 360);
       	mPointLight.coords[1] = 0.5f*(float)Math.sin(-angle * 4 * (float)Math.PI / 360);
-      	
+      	      	
       	mModelMatrix
       		.setTranslate(-0.5f, 0, -1.5f)
       		.rotate(angle, 0.4f, 0, 0.7f);
-      	mCube.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mProgram);
+      	mCube.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mDirectionalLight, mProgram);
     
-      	mModelMatrix.setTranslate(0.8f,  0, -1.0f).scaleUniform(0.6f);
-        mSphere.draw(mModelMatrix, mViewMatrix, mProjMatrix,mPointLight, mProgram);
+      	mModelMatrix
+      		.setTranslate(0.8f,  0, -1.0f)
+      		.scaleUniform(0.6f);
+        mSphere.draw(mModelMatrix, mViewMatrix, mProjMatrix,mPointLight, mDirectionalLight, mProgram);
 
+        GLES20.glDisable(GLES20.GL_CULL_FACE); // to see back face of triangle
+        
         mModelMatrix
         	.setTranslate(0, 1.0f-mTouchInputY*0.005f, -1.0f)
         	.rotate(20 + mTouchInputY*2f, 0, 0, 1.0f);
-        mTriangle.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mProgram);
+        mTriangle.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mDirectionalLight, mProgram);
         
         drawPointLight();
     }
@@ -97,11 +107,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     	Mx mvpMatrix = new Mx();
     	Mx.scratch.setMultiply(mViewMatrix, mModelMatrix);
     	mvpMatrix.setMultiply(mProjMatrix, Mx.scratch);
-    	
-    	int lightPosHandle = GLES20.glGetAttribLocation(mPointProgram, "aLightPos");
-    	Utils.checkGlError("glGetAttribLocation");
-    	
-    	GLES20.glVertexAttrib4f(lightPosHandle, 0, 0, 0, 1.0f);  	
     	
         int mvpMatrixHandle = GLES20.glGetUniformLocation(mPointProgram, "uMVPMatrix");
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix.mMatrix, 0);

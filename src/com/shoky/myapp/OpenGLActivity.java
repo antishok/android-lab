@@ -62,7 +62,7 @@ public class OpenGLActivity extends Activity implements TouchDeltaListener {
 	{
 		super.onCreate(savedInstanceState);
 		
-		mRenderer = new MyGLRenderer();
+		mRenderer = new MyGLRenderer(this);
 		mGLView = new MyGLSurfaceView(this, mRenderer);
 		mGLView.setTouchDeltaListener(this);
 		
