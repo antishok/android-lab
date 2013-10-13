@@ -48,7 +48,6 @@ public class Mesh {
         int colorHandle = GLES20.glGetAttribLocation(program, "aColor");
         Utils.checkGlError("glGetAttribLocation");
         int lightPosHandle = GLES20.glGetUniformLocation(program, "uEcLightPos");
-        //int directionalLightDirHandle = GLES20.glGetUniformLocation(program, "uEcDirectionalLightDir");
         int mvpMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");       
         int normalMxHandle = GLES20.glGetUniformLocation(program, "uNormalMatrix");
         Utils.checkGlError("glGetUniformLocation");
@@ -65,11 +64,7 @@ public class Mesh {
         float ecLightPos[] = new float[4];
         Matrix.multiplyMV(ecLightPos, 0, viewMatrix.mMatrix, 0, pointLight.coords, 0);        
         GLES20.glUniform4fv(lightPosHandle, 1, ecLightPos, 0);
-        
-        //Matrix.multiplyMV(ecLightPos, 0, viewMatrix.mMatrix, 0, directionalLight.coords, 0);        
-        //GLES20.glUniform4fv(directionalLightDirHandle, 1, ecLightPos, 0);
-        
-        
+               
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix.mMatrix, 0);        
         GLES20.glUniformMatrix4fv(normalMxHandle, 1, false, normalMatrix.mMatrix, 0);
         GLES20.glUniformMatrix4fv(GLES20.glGetUniformLocation(program, "uMVMatrix"), 1, false, mvMatrix.mMatrix, 0);

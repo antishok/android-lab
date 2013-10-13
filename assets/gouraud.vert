@@ -2,7 +2,6 @@ uniform mat4 uMVPMatrix;
 uniform mat4 uMVMatrix;
 uniform mat4 uNormalMatrix; // transpose of inverse of mv matrix (needed if mv matrix contains non-uniform scales)
 uniform vec4 uEcLightPos; // positional light
-//uniform vec4 uEcDirectionalLightDir;
 
 attribute vec4 aPosition;
 attribute vec3 aNormal;
@@ -16,7 +15,6 @@ void main() {
   vec3 ecNormal = normalize(vec3(uNormalMatrix * vec4(aNormal, 0.0))); // (can multiply by either mvMatrix or normalMatrix. normalMatrix is better when mvMatrix contains non-uniform scales)
         
   vec3 lightDir = normalize(vec3(uEcLightPos) - ecPosition); // L = vertex-to-lightpos vector, in eye-coordinates 
-  //vec3 directionalLightDir = normalize(vec3(-uEcDirectionalLightDir));
   float NdotL = max(dot(ecNormal, lightDir), 0.0);
         
   if (NdotL > 0.0) {
