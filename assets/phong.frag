@@ -18,12 +18,13 @@ void main() {
   vec3 lightDir = normalize(vLightDir);
   vec3 n = normalize(vNormal);
   vec4 color = vAmbient;
+  vec3 halfV;
   float NdotL, NdotHV;
             
   NdotL = max(dot(n, lightDir), 0.0);
   if (NdotL > 0.0) {
     color += vDiffuse * NdotL;
-    vec3 halfV = normalize(vHalfVector);
+    halfV = normalize(vHalfVector);
     NdotHV = max(dot(n,halfV), 0.0);
     color += vec4(0.2,0.3,0.5,1.0) * uLight.specular * pow(NdotHV, 16.0); //gl_FrontMaterial.specular * gl_LightSource[0].specular * pow(NdotHV, gl_FrontMaterial.shininess);
   }

@@ -35,5 +35,28 @@ public class Utils {
 	    		.position(0);
 	
 	}
+	
+	
+    public static float[] interleave(final float[][] allCoords, final short[] lengths) {
+    	int numSets = allCoords.length;
+    	int totalSize = 0;
+    	for (float[] coords: allCoords) {
+    		totalSize += coords.length;
+    	}
+    	
+    	float[] result = new float[totalSize];
+    	int offset = 0, vertexNum, currSetNum;
+    	int numVertices = allCoords[0].length / lengths[0];
+    	for (vertexNum = 0; vertexNum < numVertices; vertexNum++) {    		
+    		for (currSetNum = 0; currSetNum < numSets; currSetNum++) {
+    			float[] coords = allCoords[currSetNum];
+    			short curCoordsPerVertex = lengths[currSetNum];
+    			System.arraycopy(coords, vertexNum * curCoordsPerVertex, result, offset, curCoordsPerVertex);
+    			offset += curCoordsPerVertex;
+    		}    		
+    	}
+    	return result;
+    }
+
 
 }

@@ -20,8 +20,8 @@ varying vec4 vDiffuse, vAmbient;
 varying vec3 vNormal, vHalfVector;
 varying vec3 vLightDir;
 
-void main() {
-   
+void main() 
+{   
   vec3 ecPosition = vec3(uMVMatrix * aPosition);           // convert vertex position to eye-coordinates
   vLightDir = normalize(vec3(uLight.ecPos) - ecPosition);   // vector from vertex to lightPos
   vNormal = normalize(vec3(uNormalMatrix * vec4(aNormal, 0.0)));  // (can multiply by either mvMatrix or normalMatrix. normalMatrix is better when mvMatrix contains non-uniform scales)

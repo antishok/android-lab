@@ -16,15 +16,14 @@ import com.shoky.myapp.opengl.Shaders;
 
 public class MyGLRenderer implements GLSurfaceView.Renderer {
 
-    private static final String TAG = "MyGLRenderer";
     private Mesh mTriangle;
     private Mesh mCube;
     private Mesh mSphere;
+    
+    private Light mPointLight;
+    
     private int mProgram;
     private int mPointProgram;
-
-    private Light mPointLight;
-    //private Light mDirectionalLight;
 
     private Mx mViewMatrix = new Mx();
     private Mx mProjMatrix = new Mx();
@@ -39,9 +38,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     			new float[] {0.2f, 0.1f, 0.1f, 1.0f}, // ambient
     			new float[] {0.8f, 0.7f, 0.8f, 1.0f}, // diffuse
     			new float[] {0.8f, 0.8f, 0.8f, 1.0f}); // specular
-    	
-    	//mDirectionalLight = new Light(Light.Type.DIRECTIONAL, new float[] { 0.0f, 0.0f, -1.0f });
-        mTriangle = Mesh.newTriangle();
+
+    	mTriangle = Mesh.newTriangle();
         mSphere = Mesh.newSphere(1f,30,30);
         mCube = Mesh.newCube();
 
@@ -78,6 +76,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
       	
       	mPointLight.coords[0] = 0.5f*(float)Math.sin(angle * 2 * (float)Math.PI / 360);
       	mPointLight.coords[1] = 0.5f*(float)Math.sin(-angle * 4 * (float)Math.PI / 360);
+      	
       	      	
       	mModelMatrix
       		.setTranslate(-0.5f, 0, -1.5f)
@@ -96,12 +95,12 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         	.rotate(20 + mTouchInputY*2f, 0, 0, 1.0f);
         mTriangle.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mProgram);
         
-        drawPointLight();
+        drawPointLight(mPointLight);
     }
 
-    private void drawPointLight() {
+    private void drawPointLight(Light light) {
     	// draw a little dot where the positional light is
-		mModelMatrix.setTranslate(mPointLight.coords[0], mPointLight.coords[1], mPointLight.coords[2]);
+		mModelMatrix.setTranslate(light.coords[0], light.coords[1], light.coords[2]);
 		
     	GLES20.glUseProgram(mPointProgram);
     	

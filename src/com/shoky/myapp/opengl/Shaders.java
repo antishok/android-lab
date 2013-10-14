@@ -74,8 +74,12 @@ public class Shaders {
 
 	public static boolean loadAssets(Context context) 
 	{
+		final String[] fileNames = new String[] { 
+				"gouraud.vert", "gouraud.frag", 
+				"phong.vert", "phong.frag", 
+				"light-point.vert", "light-point.frag" };
+		
 		try {
-			String[] fileNames = new String[] { "gouraud.vert", "gouraud.frag", "phong.vert", "phong.frag", "light-point.vert", "light-point.frag" };
 		
 			for (String fileName: fileNames) {
 				InputStream is = context.getAssets().open(fileName);
