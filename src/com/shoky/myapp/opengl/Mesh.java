@@ -28,7 +28,7 @@ public class Mesh {
     	mNumVertices = drawOrder.length;
     }
     
-    public void draw(Mx modelMatrix, Mx viewMatrix, Mx projMatrix, Light pointLight, Light directionalLight, int program) {
+    public void draw(Mx modelMatrix, Mx viewMatrix, Mx projMatrix, Light pointLight, int program) {
     	Mx mvMatrix = new Mx();
     	Mx mvpMatrix = new Mx();
     	
@@ -47,7 +47,10 @@ public class Mesh {
         int normalHandle = GLES20.glGetAttribLocation(program, "aNormal");
         int colorHandle = GLES20.glGetAttribLocation(program, "aColor");
         Utils.checkGlError("glGetAttribLocation");
-        int lightPosHandle = GLES20.glGetUniformLocation(program, "uEcLightPos");
+        int lightEcPosHandle = GLES20.glGetUniformLocation(program, "uLight.ecPos");
+        int lightDiffuseHandle = GLES20.glGetUniformLocation(program, "uLight.diffuse");
+        int lightAmbientHandle = GLES20.glGetUniformLocation(program, "uLight.ambient");
+        int lightSpecularHandle = GLES20.glGetUniformLocation(program, "uLight.specular");
         int mvpMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");       
         int normalMxHandle = GLES20.glGetUniformLocation(program, "uNormalMatrix");
         Utils.checkGlError("glGetUniformLocation");
@@ -61,9 +64,11 @@ public class Mesh {
         GLES20.glEnableVertexAttribArray(colorHandle);
         GLES20.glVertexAttribPointer(colorHandle, 4, GLES20.GL_FLOAT, false, colorStride, mColorBuffer);
         
-        float ecLightPos[] = new float[4];
-        Matrix.multiplyMV(ecLightPos, 0, viewMatrix.mMatrix, 0, pointLight.coords, 0);        
-        GLES20.glUniform4fv(lightPosHandle, 1, ecLightPos, 0);
+        GLES20.glUniform4fv(lightEcPosHandle, 1, viewMatrix.transformVector(pointLight.coords), 0);
+        GLES20.glUniform4fv(lightDiffuseHandle, 1, pointLight.diffuse, 0);
+        GLES20.glUniform4fv(lightAmbientHandle, 1, pointLight.ambient, 0);
+        GLES20.glUniform4fv(lightSpecularHandle, 1, pointLight.specular, 0);
+        
                
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix.mMatrix, 0);        
         GLES20.glUniformMatrix4fv(normalMxHandle, 1, false, normalMatrix.mMatrix, 0);

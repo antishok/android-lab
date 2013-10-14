@@ -24,7 +24,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private int mPointProgram;
 
     private Light mPointLight;
-    private Light mDirectionalLight;
+    //private Light mDirectionalLight;
 
     private Mx mViewMatrix = new Mx();
     private Mx mProjMatrix = new Mx();
@@ -34,16 +34,17 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     public volatile float mTouchInputX;
     public volatile float mTouchInputY;
     
-	private Context mParentContext;
-    
     public MyGLRenderer(Context context) {
-    	mPointLight = new Light(Light.Type.POSITIONAL, new float[] { 0.0f, 0.0f, -0.2f });
-    	mDirectionalLight = new Light(Light.Type.DIRECTIONAL, new float[] { 0.0f, 0.0f, -1.0f });
+    	mPointLight = new Light(Light.Type.POSITIONAL, new float[] { 0.0f, 0.0f, -0.2f }, 
+    			new float[] {0.2f, 0.1f, 0.1f, 1.0f}, // ambient
+    			new float[] {0.8f, 0.7f, 0.8f, 1.0f}, // diffuse
+    			new float[] {0.8f, 0.8f, 0.8f, 1.0f}); // specular
+    	
+    	//mDirectionalLight = new Light(Light.Type.DIRECTIONAL, new float[] { 0.0f, 0.0f, -1.0f });
         mTriangle = Mesh.newTriangle();
         mSphere = Mesh.newSphere(1f,30,30);
         mCube = Mesh.newCube();
 
-    	mParentContext = context;
     	Shaders.loadAssets( context );
 
         // Set the initial camera position
@@ -81,19 +82,19 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
       	mModelMatrix
       		.setTranslate(-0.5f, 0, -1.5f)
       		.rotate(angle, 0.4f, 0, 0.7f);
-      	mCube.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mDirectionalLight, mProgram);
+      	mCube.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mProgram);
     
       	mModelMatrix
       		.setTranslate(0.8f,  0, -1.0f)
       		.scaleUniform(0.6f);
-        mSphere.draw(mModelMatrix, mViewMatrix, mProjMatrix,mPointLight, mDirectionalLight, mProgram);
+        mSphere.draw(mModelMatrix, mViewMatrix, mProjMatrix,mPointLight, mProgram);
 
         GLES20.glDisable(GLES20.GL_CULL_FACE); // to see back face of triangle
         
         mModelMatrix
         	.setTranslate(0, 1.0f-mTouchInputY*0.005f, -1.0f)
         	.rotate(20 + mTouchInputY*2f, 0, 0, 1.0f);
-        mTriangle.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mDirectionalLight, mProgram);
+        mTriangle.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mProgram);
         
         drawPointLight();
     }

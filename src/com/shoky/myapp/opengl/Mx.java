@@ -39,6 +39,12 @@ public class Mx {
 		}
 	}
 	
+	public float[] transformVector(float[] vector) {
+		float[] t = new float[4];
+		Matrix.multiplyMV(t, 0, mMatrix, 0, vector, 0);
+		return t;
+	}
+	
 	public Mx transpose() {
 		Matrix.transposeM(mMatrix, 0, mMatrix, 0);
 		return this;
