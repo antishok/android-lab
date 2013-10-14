@@ -39,10 +39,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     			new float[] {0.8f, 0.7f, 0.8f, 1.0f}, // diffuse
     			new float[] {0.8f, 0.8f, 0.8f, 1.0f}); // specular
 
-    	mTriangle = Mesh.newTriangle();
-        mSphere = Mesh.newSphere(1f,30,30);
-        mCube = Mesh.newCube();
-
     	Shaders.loadAssets( context );
 
         // Set the initial camera position
@@ -57,6 +53,10 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         
         mProgram = Shaders.makeLightingProgram();
         mPointProgram = Shaders.makePointProgram();
+        
+    	mTriangle = Mesh.newTriangle();
+        mSphere = Mesh.newSphere(1f,30,30);
+        mCube = Mesh.newCube();
     }
 
     @Override
