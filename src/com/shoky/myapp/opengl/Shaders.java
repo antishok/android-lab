@@ -48,6 +48,13 @@ public class Shaders {
     	    Utils.checkGlError("glAttachShader");
     	    GLES20.glAttachShader(programHandle, fragShaderHandle);
     	    Utils.checkGlError("glAttachShader");
+
+	        if (bindVertexAttrs) { // glBindAttribLocation must be called before glLinkProgram
+	            GLES20.glBindAttribLocation(programHandle, POSITION_HANDLE, "aPosition");
+		        GLES20.glBindAttribLocation(programHandle, NORMAL_HANDLE, "aNormal");
+		        GLES20.glBindAttribLocation(programHandle, COLOR_HANDLE, "aColor");
+		        Utils.checkGlError("glBindAttribLocation");
+	        }
     	    
     	    GLES20.glLinkProgram(programHandle);
     	    int[] linkStatus = new int[1];
@@ -59,12 +66,6 @@ public class Shaders {
                 return null;
             }
             
-	        if (bindVertexAttrs) {
-	            GLES20.glBindAttribLocation(programHandle, POSITION_HANDLE, "aPosition");
-		        GLES20.glBindAttribLocation(programHandle, NORMAL_HANDLE, "aNormal");
-		        GLES20.glBindAttribLocation(programHandle, COLOR_HANDLE, "aColor");
-		        Utils.checkGlError("glBindAttribLocation");
-	        }
 	        
 	        Map<String, Integer> uniformLocations = null;
 	        
