@@ -2,45 +2,44 @@ package com.shoky.myapp.opengl;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
-
 import com.shoky.myapp.opengl.Shaders.Program;
-
-
 import android.opengl.GLES20;
-import android.opengl.Matrix;
-import android.util.Log;
 
 public class Mesh {
-    protected ShortBuffer mDrawListBuffer;
     protected int mVertexBufferHandle;
+    protected int mDrawListBufferHandle;
     
     protected static final int POSITION_COORDS_PER_VERTEX = 3;
     protected static final int NORMAL_COORDS_PER_VERTEX = 3;
     protected static final int COLOR_COORDS_PER_VERTEX = 4;
     protected static final int vertexStride = (POSITION_COORDS_PER_VERTEX + NORMAL_COORDS_PER_VERTEX + COLOR_COORDS_PER_VERTEX) * 4; // 4 bytes per vertex
-    
-    
+        
     protected final int mNumVertices;
 
     public Mesh(final float[] positionCoords, final float[] normalCoords, final float[] colors, final short[] drawOrder) 
     {
-    	float[] interleaved = Utils.interleave(
+    	float[] interleaved = Utils.interleave(  // interleave the position, normal, and color arrays into one array
     			new float[][] {positionCoords, normalCoords, colors}, 
     			new short[]   {POSITION_COORDS_PER_VERTEX, NORMAL_COORDS_PER_VERTEX, COLOR_COORDS_PER_VERTEX});
     	FloatBuffer vertexBuffer = Utils.allocFloatBuffer(interleaved);
+    	ShortBuffer drawOrderBuffer = Utils.allocShortBuffer(drawOrder);
     	
-    	int[] vbo = new int[1]; 
-    	GLES20.glGenBuffers(1, vbo, 0);
+    	int[] vbo = new int[2]; 
+    	GLES20.glGenBuffers(2, vbo, 0);
     	mVertexBufferHandle = vbo[0];
+    	mDrawListBufferHandle = vbo[1];
+    	
     	GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexBufferHandle);
-    	GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, 
-    			vertexStride * (positionCoords.length / POSITION_COORDS_PER_VERTEX), 
-    			vertexBuffer, GLES20.GL_STATIC_DRAW);
+    	GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, vertexBuffer.capacity() * 4, vertexBuffer, GLES20.GL_STATIC_DRAW);
+    	
+    	GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mDrawListBufferHandle);
+    	GLES20.glBufferData(GLES20.GL_ELEMENT_ARRAY_BUFFER, drawOrderBuffer.capacity() * 2, drawOrderBuffer, GLES20.GL_STATIC_DRAW);
     	
     	GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+    	GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
+    	
     	// TODO: release vbo sometime
     	
-    	mDrawListBuffer = Utils.allocShortBuffer(drawOrder);    	
     	mNumVertices = drawOrder.length;
     }
       
@@ -54,6 +53,18 @@ public class Mesh {
     	Mx normalMatrix = new Mx(mvMatrix).invert().transpose();
     	
         program.use();
+        
+        GLES20.glUniform4fv(program.getUniformLocation("uLight.ecPos"), 1, viewMatrix.transformVector(pointLight.coords), 0);
+        GLES20.glUniform4fv(program.getUniformLocation("uLight.diffuse"), 1, pointLight.diffuse, 0);
+        GLES20.glUniform4fv(program.getUniformLocation("uLight.ambient"), 1, pointLight.ambient, 0);
+        GLES20.glUniform4fv(program.getUniformLocation("uLight.specular"), 1, pointLight.specular, 0);
+        Utils.checkGlError("glUniform4fv");
+                
+        GLES20.glUniformMatrix4fv(program.getUniformLocation("uMVMatrix"), 1, false, mvMatrix.mMatrix, 0);
+        GLES20.glUniformMatrix4fv(program.getUniformLocation("uMVPMatrix"), 1, false, mvpMatrix.mMatrix, 0);        
+        GLES20.glUniformMatrix4fv(program.getUniformLocation("uNormalMatrix"), 1, false, normalMatrix.mMatrix, 0);
+        Utils.checkGlError("glUniformMatrix4fv");
+
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexBufferHandle);
         GLES20.glEnableVertexAttribArray(Shaders.POSITION_HANDLE);
@@ -67,22 +78,12 @@ public class Mesh {
         GLES20.glEnableVertexAttribArray(Shaders.COLOR_HANDLE);
         GLES20.glVertexAttribPointer(Shaders.COLOR_HANDLE, COLOR_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 4 * (POSITION_COORDS_PER_VERTEX + NORMAL_COORDS_PER_VERTEX));
 
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
-
-        GLES20.glUniform4fv(program.getUniformLocation("uLight.ecPos"), 1, viewMatrix.transformVector(pointLight.coords), 0);
-        GLES20.glUniform4fv(program.getUniformLocation("uLight.diffuse"), 1, pointLight.diffuse, 0);
-        GLES20.glUniform4fv(program.getUniformLocation("uLight.ambient"), 1, pointLight.ambient, 0);
-        GLES20.glUniform4fv(program.getUniformLocation("uLight.specular"), 1, pointLight.specular, 0);
-        Utils.checkGlError("glUniform4fv");
-                
-        GLES20.glUniformMatrix4fv(program.getUniformLocation("uMVMatrix"), 1, false, mvMatrix.mMatrix, 0);
-        GLES20.glUniformMatrix4fv(program.getUniformLocation("uMVPMatrix"), 1, false, mvpMatrix.mMatrix, 0);        
-        GLES20.glUniformMatrix4fv(program.getUniformLocation("uNormalMatrix"), 1, false, normalMatrix.mMatrix, 0);
-        Utils.checkGlError("glUniformMatrix4fv");
-
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, mNumVertices,
-                              GLES20.GL_UNSIGNED_SHORT, mDrawListBuffer);        
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mDrawListBufferHandle);
+        GLES20.glDrawElements(GLES20.GL_TRIANGLES, mNumVertices, GLES20.GL_UNSIGNED_SHORT, 0);        
         Utils.checkGlError("glDrawElements");
+        
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+        GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
 
         GLES20.glDisableVertexAttribArray(Shaders.COLOR_HANDLE);
         GLES20.glDisableVertexAttribArray(Shaders.NORMAL_HANDLE);
