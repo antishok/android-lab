@@ -53,11 +53,8 @@ public class Mesh {
     	
         GLES20.glUseProgram(program);
 
-        // TODO: store the location handles on startup
+        // TODO: store the uniform's location handles on startup
         
-        int positionHandle = 0;
-        int normalHandle = 1;
-        int colorHandle = 2;
         int lightEcPosHandle = GLES20.glGetUniformLocation(program, "uLight.ecPos");
         int lightDiffuseHandle = GLES20.glGetUniformLocation(program, "uLight.diffuse");
         int lightAmbientHandle = GLES20.glGetUniformLocation(program, "uLight.ambient");
@@ -67,16 +64,16 @@ public class Mesh {
         Utils.checkGlError("glGetUniformLocation");
         
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexBufferHandle);
-        GLES20.glEnableVertexAttribArray(positionHandle);
-        GLES20.glVertexAttribPointer(positionHandle, POSITION_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 0);
+        GLES20.glEnableVertexAttribArray(Shaders.POSITION_HANDLE);
+        GLES20.glVertexAttribPointer(Shaders.POSITION_HANDLE, POSITION_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 0);
         
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexBufferHandle);
-        GLES20.glEnableVertexAttribArray(normalHandle);
-        GLES20.glVertexAttribPointer(normalHandle, NORMAL_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 4 * POSITION_COORDS_PER_VERTEX);
+        GLES20.glEnableVertexAttribArray(Shaders.NORMAL_HANDLE);
+        GLES20.glVertexAttribPointer(Shaders.NORMAL_HANDLE, NORMAL_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 4 * POSITION_COORDS_PER_VERTEX);
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexBufferHandle);
-        GLES20.glEnableVertexAttribArray(colorHandle);
-        GLES20.glVertexAttribPointer(colorHandle, COLOR_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 4 * (POSITION_COORDS_PER_VERTEX + NORMAL_COORDS_PER_VERTEX));
+        GLES20.glEnableVertexAttribArray(Shaders.COLOR_HANDLE);
+        GLES20.glVertexAttribPointer(Shaders.COLOR_HANDLE, COLOR_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 4 * (POSITION_COORDS_PER_VERTEX + NORMAL_COORDS_PER_VERTEX));
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
 
@@ -84,20 +81,20 @@ public class Mesh {
         GLES20.glUniform4fv(lightDiffuseHandle, 1, pointLight.diffuse, 0);
         GLES20.glUniform4fv(lightAmbientHandle, 1, pointLight.ambient, 0);
         GLES20.glUniform4fv(lightSpecularHandle, 1, pointLight.specular, 0);
-        
-               
+        Utils.checkGlError("glUniform4fv");
+                
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix.mMatrix, 0);        
         GLES20.glUniformMatrix4fv(normalMxHandle, 1, false, normalMatrix.mMatrix, 0);
         GLES20.glUniformMatrix4fv(GLES20.glGetUniformLocation(program, "uMVMatrix"), 1, false, mvMatrix.mMatrix, 0);
-
         Utils.checkGlError("glUniformMatrix4fv");
 
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, mNumVertices,
-                              GLES20.GL_UNSIGNED_SHORT, mDrawListBuffer);
+                              GLES20.GL_UNSIGNED_SHORT, mDrawListBuffer);        
+        Utils.checkGlError("glDrawElements");
 
-        GLES20.glDisableVertexAttribArray(colorHandle);
-        GLES20.glDisableVertexAttribArray(normalHandle);
-        GLES20.glDisableVertexAttribArray(positionHandle);
+        GLES20.glDisableVertexAttribArray(Shaders.COLOR_HANDLE);
+        GLES20.glDisableVertexAttribArray(Shaders.NORMAL_HANDLE);
+        GLES20.glDisableVertexAttribArray(Shaders.POSITION_HANDLE);
     }
     
     public static Mesh newCube() {

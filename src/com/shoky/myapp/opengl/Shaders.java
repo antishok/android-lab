@@ -14,6 +14,10 @@ public class Shaders {
 	
 	public static Map<String, String> shaderSources = new HashMap<String, String>();
 	
+    final static int POSITION_HANDLE = 0;
+    final static int NORMAL_HANDLE = 1;
+    final static int COLOR_HANDLE = 2;
+	
     public static int makeProgram(int vertShaderHandle, int fragShaderHandle) {    		    
 	    int program = GLES20.glCreateProgram();
 	    if (program == 0)
@@ -36,6 +40,7 @@ public class Shaders {
 	    return program;
     }
     
+    
     public static int makeLightingProgram() {
 	    int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER,
 	            "phong".equals(CURRENT_SHADER) ? "phong.vert" : "gouraud.vert");
@@ -44,9 +49,9 @@ public class Shaders {
 	    
 	    int program = makeProgram(vertexShader, fragmentShader);
 	    if (program != 0) {
-	        GLES20.glBindAttribLocation(program, 0, "aPosition");
-	        GLES20.glBindAttribLocation(program, 1, "aNormal");
-	        GLES20.glBindAttribLocation(program, 2, "aColor");
+	        GLES20.glBindAttribLocation(program, POSITION_HANDLE, "aPosition");
+	        GLES20.glBindAttribLocation(program, NORMAL_HANDLE, "aNormal");
+	        GLES20.glBindAttribLocation(program, COLOR_HANDLE, "aColor");
 	        Utils.checkGlError("glBindAttribLocation");
 	    }
 	    return program;
