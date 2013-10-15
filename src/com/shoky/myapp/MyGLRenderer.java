@@ -13,6 +13,7 @@ import com.shoky.myapp.opengl.Light;
 import com.shoky.myapp.opengl.Mesh;
 import com.shoky.myapp.opengl.Mx;
 import com.shoky.myapp.opengl.Shaders;
+import com.shoky.myapp.opengl.Shaders.Program;
 
 public class MyGLRenderer implements GLSurfaceView.Renderer {
 
@@ -22,8 +23,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     
     private Light mPointLight;
     
-    private int mProgram;
-    private int mPointProgram;
+    private Program mProgram;
+    private Program mPointProgram;
 
     private Mx mViewMatrix = new Mx();
     private Mx mProjMatrix = new Mx();
@@ -102,14 +103,13 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     	// draw a little dot where the positional light is
 		mModelMatrix.setTranslate(light.coords[0], light.coords[1], light.coords[2]);
 		
-    	GLES20.glUseProgram(mPointProgram);
+    	mPointProgram.use();
     	
     	Mx mvpMatrix = new Mx();
     	Mx.scratch.setMultiply(mViewMatrix, mModelMatrix);
     	mvpMatrix.setMultiply(mProjMatrix, Mx.scratch);
-    	
-        int mvpMatrixHandle = GLES20.glGetUniformLocation(mPointProgram, "uMVPMatrix");
-        GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix.mMatrix, 0);
+    	        
+        GLES20.glUniformMatrix4fv(mPointProgram.getUniformLocation("uMVPMatrix"), 1, false, mvpMatrix.mMatrix, 0);
         
         GLES20.glDrawArrays(GLES20.GL_POINTS, 0, 1);
 	}
