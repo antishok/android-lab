@@ -10,12 +10,13 @@ import android.util.Log;
 
 public class Mesh {
     protected ShortBuffer mDrawListBuffer;
-    protected int mVBO;
+    protected int mVertexBufferHandle;
     
     protected static final int POSITION_COORDS_PER_VERTEX = 3;
     protected static final int NORMAL_COORDS_PER_VERTEX = 3;
     protected static final int COLOR_COORDS_PER_VERTEX = 4;
     protected static final int vertexStride = (POSITION_COORDS_PER_VERTEX + NORMAL_COORDS_PER_VERTEX + COLOR_COORDS_PER_VERTEX) * 4; // 4 bytes per vertex
+    
     
     protected final int mNumVertices;
 
@@ -28,8 +29,8 @@ public class Mesh {
     	
     	int[] vbo = new int[1]; 
     	GLES20.glGenBuffers(1, vbo, 0);
-    	mVBO = vbo[0];
-    	GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVBO);
+    	mVertexBufferHandle = vbo[0];
+    	GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexBufferHandle);
     	GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, 
     			vertexStride * (positionCoords.length / POSITION_COORDS_PER_VERTEX), 
     			vertexBuffer, GLES20.GL_STATIC_DRAW);
@@ -40,7 +41,7 @@ public class Mesh {
     	mDrawListBuffer = Utils.allocShortBuffer(drawOrder);    	
     	mNumVertices = drawOrder.length;
     }
-    
+      
     public void draw(Mx modelMatrix, Mx viewMatrix, Mx projMatrix, Light pointLight, int program) {
     	Mx mvMatrix = new Mx();
     	Mx mvpMatrix = new Mx();
@@ -52,12 +53,11 @@ public class Mesh {
     	
         GLES20.glUseProgram(program);
 
-        // TODO: store the location handles on startup (also - bind them manually with glBindAttribLocation)
+        // TODO: store the location handles on startup
         
-        int positionHandle = GLES20.glGetAttribLocation(program, "aPosition");
-        int normalHandle = GLES20.glGetAttribLocation(program, "aNormal");
-        int colorHandle = GLES20.glGetAttribLocation(program, "aColor");
-        Utils.checkGlError("glGetAttribLocation");
+        int positionHandle = 0;
+        int normalHandle = 1;
+        int colorHandle = 2;
         int lightEcPosHandle = GLES20.glGetUniformLocation(program, "uLight.ecPos");
         int lightDiffuseHandle = GLES20.glGetUniformLocation(program, "uLight.diffuse");
         int lightAmbientHandle = GLES20.glGetUniformLocation(program, "uLight.ambient");
@@ -66,15 +66,15 @@ public class Mesh {
         int normalMxHandle = GLES20.glGetUniformLocation(program, "uNormalMatrix");
         Utils.checkGlError("glGetUniformLocation");
         
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVBO);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexBufferHandle);
         GLES20.glEnableVertexAttribArray(positionHandle);
         GLES20.glVertexAttribPointer(positionHandle, POSITION_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 0);
         
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVBO);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexBufferHandle);
         GLES20.glEnableVertexAttribArray(normalHandle);
         GLES20.glVertexAttribPointer(normalHandle, NORMAL_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 4 * POSITION_COORDS_PER_VERTEX);
 
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVBO);
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexBufferHandle);
         GLES20.glEnableVertexAttribArray(colorHandle);
         GLES20.glVertexAttribPointer(colorHandle, COLOR_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 4 * (POSITION_COORDS_PER_VERTEX + NORMAL_COORDS_PER_VERTEX));
 

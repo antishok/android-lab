@@ -42,7 +42,14 @@ public class Shaders {
 	    int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER,
 	    		"phong".equals(CURRENT_SHADER) ? "phong.frag" : "gouraud.frag");
 	    
-    	return makeProgram(vertexShader, fragmentShader);
+	    int program = makeProgram(vertexShader, fragmentShader);
+	    if (program != 0) {
+	        GLES20.glBindAttribLocation(program, 0, "aPosition");
+	        GLES20.glBindAttribLocation(program, 1, "aNormal");
+	        GLES20.glBindAttribLocation(program, 2, "aColor");
+	        Utils.checkGlError("glBindAttribLocation");
+	    }
+	    return program;
     }
     
     public static int makePointProgram() {    	
