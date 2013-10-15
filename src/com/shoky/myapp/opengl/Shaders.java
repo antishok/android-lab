@@ -10,7 +10,7 @@ import android.opengl.GLES20;
 import android.util.Log;
 
 public class Shaders {
-	public final static String CURRENT_SHADER = "phongz";
+	public final static String CURRENT_SHADER = "phong";
 	
 	public static Map<String, String> shaderSources = new HashMap<String, String>();
 	
