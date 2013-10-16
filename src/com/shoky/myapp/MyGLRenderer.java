@@ -66,7 +66,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     		.setTranslate(0, 0, -4.5f)
     		.rotate(mTouchInputX,0,1,0)
     		.rotate(mTouchInputY,1,0,0)
-    		.translate(0, 0, 1.5f); // tmp
+    		.translate(0, 0, 1.5f);
 
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         GLES20.glEnable(GLES20.GL_CULL_FACE);

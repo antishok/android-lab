@@ -14,6 +14,7 @@ public class Mx {
 	
 	public Mx() {
 		mMatrix = new float[16];
+		Matrix.setIdentityM(mMatrix, 0);
 	}
 	public Mx(float[] matrix) {
 		mMatrix = Arrays.copyOf(matrix, 16);
