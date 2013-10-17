@@ -13,8 +13,11 @@ import com.shoky.myapp.opengl.Mesh;
 import com.shoky.myapp.opengl.Mx;
 import com.shoky.myapp.opengl.Shaders;
 import com.shoky.myapp.opengl.Shaders.Program;
+import com.shoky.myapp.opengl.Utils;
 
 public class MyGLRenderer implements GLSurfaceView.Renderer {
+	
+	private Context mContext;
 
     private Mesh mTriangle;
     private Mesh mCube;
@@ -23,6 +26,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private Light mPointLight;
     
     private Program mProgram;
+    private Program mTexProgram;
     private Program mPointProgram;
 
     private Mx mViewMatrix = new Mx();
@@ -32,8 +36,11 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     // Declare as volatile because we are updating it from another thread
     public volatile float mTouchInputX;
     public volatile float mTouchInputY;
+
+	private int mTexDataHandle;
     
     public MyGLRenderer(Context context) {
+    	mContext = context;
     	mPointLight = new Light(Light.Type.POSITIONAL, new float[] { 0.0f, 0.0f, -0.2f }, 
     			new float[] {0.2f, 0.1f, 0.1f, 1.0f}, // ambient
     			new float[] {0.8f, 0.7f, 0.8f, 1.0f}, // diffuse
@@ -51,12 +58,15 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
         
-        mProgram = Shaders.makeLightingProgram();
+        mProgram = Shaders.makeLightingProgram(false);
+        mTexProgram = Shaders.makeLightingProgram(true);
         mPointProgram = Shaders.makePointProgram();
         
     	mTriangle = Mesh.newTriangle();
         mSphere = Mesh.newSphere(1f,30,30);
         mCube = Mesh.newCube();
+        
+        mTexDataHandle = Utils.loadTexture(mContext, R.drawable.ic_launcher);
     }
 
     @Override
@@ -81,23 +91,23 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
       	mModelMatrix
       		.setTranslate(-0.5f, 0, -1.5f)
       		.rotate(angle, 0.4f, 0, 0.7f);
-      	mCube.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mProgram);
+      	mCube.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mTexProgram, mTexDataHandle);
     
       	mModelMatrix
       		.setTranslate(0.8f,  0, -1.0f)
       		.scaleUniform(0.6f);
-        mSphere.draw(mModelMatrix, mViewMatrix, mProjMatrix,mPointLight, mProgram);
+        mSphere.draw(mModelMatrix, mViewMatrix, mProjMatrix,mPointLight, mProgram, 0);
 
         GLES20.glDisable(GLES20.GL_CULL_FACE); // to see back face of triangle
         
         mModelMatrix
         	.setTranslate(0, 1.0f-mTouchInputY*0.005f, -1.0f)
         	.rotate(20 + mTouchInputY*2f, 0, 0, 1.0f);
-        mTriangle.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mProgram);
+        mTriangle.draw(mModelMatrix, mViewMatrix, mProjMatrix, mPointLight, mProgram, 0);
         
         drawPointLight(mPointLight);
     }
-
+    
     private void drawPointLight(Light light) {
     	// draw a little dot where the positional light is
 		mModelMatrix.setTranslate(light.coords[0], light.coords[1], light.coords[2]);

@@ -17,6 +17,7 @@ public class Shaders {
     final static int POSITION_HANDLE = 0;
     final static int NORMAL_HANDLE = 1;
     final static int COLOR_HANDLE = 2;
+    final static int TEXTURE_HANDLE = 3;
 	
     public static class Program {
     	public int mProgramHandle;
@@ -38,7 +39,7 @@ public class Shaders {
     		return mUniformLocations.get(uniform);
     	}
     	
-    	public static Program makeProgram(int vertShaderHandle, int fragShaderHandle, boolean bindVertexAttrs, String[] uniforms)
+    	public static Program makeProgram(int vertShaderHandle, int fragShaderHandle, boolean bindVertexAttrs, boolean hasTexCoords, String[] uniforms)
     	{
     		int programHandle = GLES20.glCreateProgram();
     	    if (programHandle == 0)
@@ -53,6 +54,8 @@ public class Shaders {
 	            GLES20.glBindAttribLocation(programHandle, POSITION_HANDLE, "aPosition");
 		        GLES20.glBindAttribLocation(programHandle, NORMAL_HANDLE, "aNormal");
 		        GLES20.glBindAttribLocation(programHandle, COLOR_HANDLE, "aColor");
+		        if (hasTexCoords)
+		        	GLES20.glBindAttribLocation(programHandle, TEXTURE_HANDLE, "aTexCoords");
 		        Utils.checkGlError("glBindAttribLocation");
 	        }
     	    
@@ -82,22 +85,32 @@ public class Shaders {
     	
     }
     
-    
-    public static Program makeLightingProgram() {
-	    int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER,
-	            "phong".equals(CURRENT_SHADER) ? "phong.vert" : "gouraud.vert");
-	    int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER,
-	    		"phong".equals(CURRENT_SHADER) ? "phong.frag" : "gouraud.frag");
+    public static Program makeProgram(String shader, String[] uniforms, boolean bindVertexAttrs, boolean hasTexCoords) {
+	    int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, shader + ".vert");
+	    int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, shader + ".frag");
 	    
-	    return Program.makeProgram(vertexShader, fragmentShader, true, new String[] {
-        		"uLight.ecPos", "uLight.diffuse", "uLight.ambient", "uLight.specular", "uMVMatrix", "uMVPMatrix", "uNormalMatrix"});
+	    return Program.makeProgram(vertexShader, fragmentShader, bindVertexAttrs, hasTexCoords, uniforms);
     }
     
-    public static Program makePointProgram() {    	
-	    int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, "light-point.vert");
-	    int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, "light-point.frag");
-	    
-	    return Program.makeProgram(vertexShader, fragmentShader, false, new String[] {"uMVPMatrix"});
+    
+    public static Program makeLightingProgram(boolean withTexture) {
+    	String shader = "phong".equals(CURRENT_SHADER) ? "phong" : "gouraud";
+    	String[] uniforms;
+    	if (withTexture) {
+    		uniforms = new String[] {
+            		"uLight.ecPos", "uLight.diffuse", "uLight.ambient", "uLight.specular", "uMVMatrix", "uMVPMatrix", "uNormalMatrix", "uTexture"};
+    		shader = shader + "-texture";
+    	}
+    	else {
+    		uniforms = new String[] {
+            		"uLight.ecPos", "uLight.diffuse", "uLight.ambient", "uLight.specular", "uMVMatrix", "uMVPMatrix", "uNormalMatrix"};    		
+    	}
+    	
+    	return makeProgram(shader, uniforms, true, withTexture);
+    }
+    
+    public static Program makePointProgram() {
+    	return makeProgram("light-point", new String[] {"uMVPMatrix"}, false, false);
     }
 
     public static int loadShader(int type, String shaderName){
@@ -125,7 +138,8 @@ public class Shaders {
 	{
 		final String[] fileNames = new String[] { 
 				"gouraud.vert", "gouraud.frag", 
-				"phong.vert", "phong.frag", 
+				"phong.vert", "phong.frag",
+				"phong-texture.vert", "phong-texture.frag",
 				"light-point.vert", "light-point.frag" };
 		
 		try {

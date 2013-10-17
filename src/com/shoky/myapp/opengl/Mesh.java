@@ -13,15 +13,18 @@ public class Mesh {
     protected static final int POSITION_COORDS_PER_VERTEX = 3;
     protected static final int NORMAL_COORDS_PER_VERTEX = 3;
     protected static final int COLOR_COORDS_PER_VERTEX = 4;
+    protected static final int TEXTURE_COORDS_PER_VERTEX = 2;
+    
     protected static final int vertexStride = (POSITION_COORDS_PER_VERTEX + NORMAL_COORDS_PER_VERTEX + COLOR_COORDS_PER_VERTEX) * 4; // 4 bytes per vertex
+    protected static final int vertexStrideTex = (POSITION_COORDS_PER_VERTEX + NORMAL_COORDS_PER_VERTEX + COLOR_COORDS_PER_VERTEX + TEXTURE_COORDS_PER_VERTEX) * 4; // 4 bytes per vertex
         
     protected final int mNumVertices;
 
-    public Mesh(final float[] positionCoords, final float[] normalCoords, final float[] colors, final short[] indexList) 
+    public Mesh(final float[] positionCoords, final float[] normalCoords, final float[] colors, final float[] texCoords, final short[] indexList) 
     {
     	float[] interleaved = Utils.interleave(  // interleave the position, normal, and color arrays into one array
-    			new float[][] {positionCoords, normalCoords, colors}, 
-    			new short[]   {POSITION_COORDS_PER_VERTEX, NORMAL_COORDS_PER_VERTEX, COLOR_COORDS_PER_VERTEX});
+    			new float[][] {positionCoords, normalCoords, colors, texCoords}, 
+    			new short[]   {POSITION_COORDS_PER_VERTEX, NORMAL_COORDS_PER_VERTEX, COLOR_COORDS_PER_VERTEX, TEXTURE_COORDS_PER_VERTEX});
     	FloatBuffer vertexBuffer = Utils.allocFloatBuffer(interleaved);
     	ShortBuffer indexBuffer = Utils.allocShortBuffer(indexList);
     	
@@ -42,7 +45,9 @@ public class Mesh {
     	mNumVertices = indexList.length;
     }
     
-    public void draw(Mx modelMatrix, Mx viewMatrix, Mx projMatrix, Light pointLight, Program program) {
+    public void draw(Mx modelMatrix, Mx viewMatrix, Mx projMatrix, Light pointLight, Program program, int texDataHandle) {
+    	boolean hasTexture = texDataHandle != 0;
+    	int stride = hasTexture ? vertexStrideTex : vertexStride;
     	Mx mvMatrix = new Mx();
     	Mx mvpMatrix = new Mx();
     	
@@ -63,15 +68,25 @@ public class Mesh {
         GLES20.glUniformMatrix4fv(program.getUniformLocation("uMVPMatrix"), 1, false, mvpMatrix.mMatrix, 0);        
         GLES20.glUniformMatrix4fv(program.getUniformLocation("uNormalMatrix"), 1, false, normalMatrix.mMatrix, 0);
         Utils.checkGlError("glUniformMatrix4fv");
+        
+        if (hasTexture) {
+	        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+	        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texDataHandle);
+	        GLES20.glUniform1i(program.getUniformLocation("uTexture"), 0);
+        }
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, mVertexBufferHandle);
         
         GLES20.glEnableVertexAttribArray(Shaders.POSITION_HANDLE);
         GLES20.glEnableVertexAttribArray(Shaders.NORMAL_HANDLE);
         GLES20.glEnableVertexAttribArray(Shaders.COLOR_HANDLE);
-        GLES20.glVertexAttribPointer(Shaders.POSITION_HANDLE, POSITION_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 0);
-        GLES20.glVertexAttribPointer(Shaders.NORMAL_HANDLE, NORMAL_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 4 * POSITION_COORDS_PER_VERTEX);
-        GLES20.glVertexAttribPointer(Shaders.COLOR_HANDLE, COLOR_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, vertexStride, 4 * (POSITION_COORDS_PER_VERTEX + NORMAL_COORDS_PER_VERTEX));
+        if (hasTexture)
+        	GLES20.glEnableVertexAttribArray(Shaders.TEXTURE_HANDLE);
+        GLES20.glVertexAttribPointer(Shaders.POSITION_HANDLE, POSITION_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, stride, 0);
+        GLES20.glVertexAttribPointer(Shaders.NORMAL_HANDLE, NORMAL_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, stride, 4 * POSITION_COORDS_PER_VERTEX);
+        GLES20.glVertexAttribPointer(Shaders.COLOR_HANDLE, COLOR_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, stride, 4 * (POSITION_COORDS_PER_VERTEX + NORMAL_COORDS_PER_VERTEX));
+        if (hasTexture)
+        	GLES20.glVertexAttribPointer(Shaders.TEXTURE_HANDLE, TEXTURE_COORDS_PER_VERTEX, GLES20.GL_FLOAT, false,stride, 4 * (POSITION_COORDS_PER_VERTEX + NORMAL_COORDS_PER_VERTEX + COLOR_COORDS_PER_VERTEX));
 
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, mIndexBufferHandle);
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, mNumVertices, GLES20.GL_UNSIGNED_SHORT, 0);        
@@ -80,6 +95,8 @@ public class Mesh {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
 
+        if (texDataHandle != 0)
+        	GLES20.glDisableVertexAttribArray(Shaders.TEXTURE_HANDLE);
         GLES20.glDisableVertexAttribArray(Shaders.COLOR_HANDLE);
         GLES20.glDisableVertexAttribArray(Shaders.NORMAL_HANDLE);
         GLES20.glDisableVertexAttribArray(Shaders.POSITION_HANDLE);
@@ -136,6 +153,14 @@ public class Mesh {
        		0.2f, 0.709803922f, 0.898039216f, 1.0f,   0.2f, 0.709803922f, 0.898039216f, 1.0f,   0.2f, 0.709803922f, 0.898039216f, 1.0f,   0.2f, 0.709803922f, 0.898039216f, 1.0f,
        		0.2f, 0.709803922f, 0.898039216f, 1.0f,   0.2f, 0.709803922f, 0.898039216f, 1.0f,   0.2f, 0.709803922f, 0.898039216f, 1.0f,   0.2f, 0.709803922f, 0.898039216f, 1.0f,
        		0.2f, 0.709803922f, 0.898039216f, 1.0f,   0.2f, 0.709803922f, 0.898039216f, 1.0f,   0.2f, 0.709803922f, 0.898039216f, 1.0f,   0.2f, 0.709803922f, 0.898039216f, 1.0f
+       },
+       new float[] {
+    		0.0f, 0.0f,   0.0f, 1.0f,   1.0f, 1.0f,   1.0f, 0.0f,
+    		0.0f, 0.0f,   0.0f, 1.0f,   1.0f, 1.0f,   1.0f, 0.0f,
+    		0.0f, 0.0f,   0.0f, 1.0f,   1.0f, 1.0f,   1.0f, 0.0f,
+    		0.0f, 0.0f,   0.0f, 1.0f,   1.0f, 1.0f,   1.0f, 0.0f,
+    		0.0f, 0.0f,   0.0f, 1.0f,   1.0f, 1.0f,   1.0f, 0.0f,
+    		0.0f, 0.0f,   0.0f, 1.0f,   1.0f, 1.0f,   1.0f, 0.0f
        },
        new short[] { 
        		0, 1, 2, 0, 2, 3, 
@@ -285,7 +310,7 @@ public class Mesh {
 		
 		setCoords3(drawOffset,drawOffset+sliceNum+1,drawOffset+1,drawOrder,triCount*3); triCount++;
 
-		return new Mesh(vertexCoords, normalCoords, colorCoords, drawOrder);
+		return new Mesh(vertexCoords, normalCoords, colorCoords, null, drawOrder);
     }
     
     public static Mesh newTriangle() {
@@ -299,6 +324,7 @@ public class Mesh {
       		0.63671875f, 0.76953125f, 0.22265625f, 1.0f, 
       		0.76953125f, 0.22265625f, 0.63671875f, 1.0f, 
       		0.76953125f, 0.63671875f, 0.22265625f, 1.0f },
+      	null,
       	new short[] {0, 1, 2});                      
     }
 }
